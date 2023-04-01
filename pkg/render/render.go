@@ -2,29 +2,45 @@ package render
 
 import (
 	"bytes"
+	"github.com/tnaucoin/go-web-app/pkg/config"
 	"log"
 	"net/http"
 	"path/filepath"
 	"text/template"
 )
 
+var app *config.AppConfig
+
+// NewTemplates assigns the template cache to render
+func NewTemplates(a *config.AppConfig) {
+	app = a
+}
+
 // TemplateRenderer parses the template file and Executes it using the ResponseWriter
 func TemplateRenderer(w http.ResponseWriter, tmpl string) {
-	// create a template cache
-	tc, err := createTemplateCache()
-	if err != nil {
-		log.Fatal(err)
+	var tc map[string]*template.Template
+	// Enables or disables the use of the tmpl cache
+	if app.UseCache {
+		tc = app.TemplateCache
+	} else {
+		var err error
+		// Recreate the cache on every call
+		tc, err = CreateTemplateCache()
+		if err != nil {
+			log.Fatal("could not create the template cache")
+		}
 	}
-	// get requested template from cache
+	// get template cache from app config
+	// and requested template from cache
 	t, ok := tc[tmpl]
 	if !ok {
-		log.Fatal(err)
+		log.Fatal("could not get template from cache")
 	}
 
 	// create a new buffer and run execute writing to the buffer
 	// this allows us to catch errors within the template itself
 	buf := new(bytes.Buffer)
-	err = t.Execute(buf, nil)
+	err := t.Execute(buf, nil)
 
 	if err != nil {
 		log.Println(err)
@@ -36,8 +52,8 @@ func TemplateRenderer(w http.ResponseWriter, tmpl string) {
 	}
 }
 
-// createTemplateCache parses all pages and layouts and stores them by name in a map cache
-func createTemplateCache() (map[string]*template.Template, error) {
+// CreateTemplateCache parses all pages and layouts and stores them by name in a map cache
+func CreateTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 	// get all page files from ./templates
 	pages, err := filepath.Glob("./templates/*.page.html")
