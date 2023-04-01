@@ -3,6 +3,7 @@ package render
 import (
 	"bytes"
 	"github.com/tnaucoin/go-web-app/pkg/config"
+	"github.com/tnaucoin/go-web-app/pkg/models"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -16,8 +17,13 @@ func NewTemplates(a *config.AppConfig) {
 	app = a
 }
 
+// AddDefaultData adds default data to the template data
+func AddDefaultData(td *models.TemplateData) *models.TemplateData {
+	return td
+}
+
 // TemplateRenderer parses the template file and Executes it using the ResponseWriter
-func TemplateRenderer(w http.ResponseWriter, tmpl string) {
+func TemplateRenderer(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
 	var tc map[string]*template.Template
 	// Enables or disables the use of the tmpl cache
 	if app.UseCache {
@@ -36,11 +42,12 @@ func TemplateRenderer(w http.ResponseWriter, tmpl string) {
 	if !ok {
 		log.Fatal("could not get template from cache")
 	}
-
+	// Assign default data
+	td = AddDefaultData(td)
 	// create a new buffer and run execute writing to the buffer
 	// this allows us to catch errors within the template itself
 	buf := new(bytes.Buffer)
-	err := t.Execute(buf, nil)
+	err := t.Execute(buf, td)
 
 	if err != nil {
 		log.Println(err)
