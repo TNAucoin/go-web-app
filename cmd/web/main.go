@@ -17,12 +17,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// Setup App config
 	app.UseCache = false
-	// assign template cache to the app config
 	app.TemplateCache = tc
+	// Create handlers repository
 	repo := handlers.NewRepo(&app)
 	handlers.NewHandlers(repo)
-	// pass the app config to the renderer
+	// Setup Render
 	render.NewTemplates(&app)
 
 	fmt.Printf("Starting App on port:%s\n", portNumber)
