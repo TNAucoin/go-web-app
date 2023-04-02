@@ -13,6 +13,7 @@ func routes(app *config.AppConfig) http.Handler {
 	// Add middleware
 	mux.Use(middleware.Recoverer)
 	mux.Use(NoSurf)
+	mux.Use(SessionLoad)
 	// Register route handlers
 	mux.Get("/", http.HandlerFunc(handlers.Repo.Home))
 	mux.Get("/about", http.HandlerFunc(handlers.Repo.About))
